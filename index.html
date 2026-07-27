@@ -5,24 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Constituição na Palma da Mão</title>
 
-    <!-- Ícone para navegadores e celuares -->
+    <!-- Ícone para navegadores e celulares -->
     <link rel="icon" type="image/png" sizes="192x192" href="icon-192x192.png">
     <link rel="apple-touch-icon" href="icon-512x512.png">
 
-    <!-- Configurações para PWA (Instalável no Celular) -->
+    <!-- Configurações para PWA -->
     <link rel="manifest" href="data:application/json,{%22name%22:%22Constituição%20na%20Palma%20da%20Mão%22,%22short_name%22:%22Constituição%22,%22start_url%22:%22.%22,%22display%22:%22standalone%22,%22background_color%22:%22%231e3a8a%22,%22theme_color%22:%22%231e3a8a%22,%22icons%22:[{%22src%22:%22icon-192x192.png%22,%22sizes%22:%22192x192%22,%22type%22:%22image/png%22},{%22src%22:%22icon-512x512.png%22,%22sizes%22:%22512x512%22,%22type%22:%22image/png%22}]}">
     <meta name="theme-color" content="#1e3a8a">
 
-    <!-- Tailwind CSS para Estilização Visual -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- MarkedJS para formatar a resposta da IA em HTML bonito -->
+    <!-- MarkedJS -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body class="bg-slate-100 min-h-screen text-slate-800 font-sans p-4 md:p-6">
 
-    <!-- Tela de Capa / Splash Screen (Abre por 2.5s com logo MUITO AMPLA) -->
+    <!-- Tela de Capa / Splash Screen -->
     <div id="splashScreen" class="fixed inset-0 bg-blue-900 flex justify-center items-center z-50 transition-opacity duration-700">
-        <!-- Contêiner da Logo - Aumentado consideravelmente para w-72 md:w-96 -->
         <div class="w-72 h-72 md:w-96 md:h-96 overflow-hidden rounded-3xl shadow-2xl border-2 border-amber-400/30 flex items-center justify-center animate-pulse">
             <img src="icon-512x512.png" alt="Constituição na Palma da Mão" class="w-full h-full object-cover">
         </div>
@@ -36,7 +35,6 @@
                 Conheça e exerça seus direitos de forma simples
             </p>
             <style>
-                /* Força blocos de código e texto pré-formatado a quebrarem linha */
                 #resultado pre, #resultado code {
                     white-space: pre-wrap !important;
                     word-break: break-word !important;
@@ -86,7 +84,6 @@
 
         <!-- Área de Exibição de Resultados -->
         <section id="resultado" class="hidden p-6 border-t border-slate-200 bg-slate-50 text-slate-900 leading-relaxed space-y-4 break-words overflow-hidden">
-            <!-- A resposta formatada do Gemini será inserida aqui via JS -->
         </section>
     </main>
 
@@ -101,8 +98,7 @@
                     splash.classList.add('opacity-0');
                     setTimeout(() => splash.style.display = 'none', 700);
                 }
-            },
-                2500);
+            }, 2500);
         });
 
         // ==========================================
@@ -116,9 +112,6 @@
         📞 4. Contatos Úteis e Acesso à Justiça Local (Use a localização informada para direcionar Procon/Defensoria)
         📄 5. Modelo de Requerimento / Carta Pronta
         Mantenha o tom empático e termine com nota legal informativa.`;
-
-        // ⚠️ Cole sua API Key do Google AI Studio abaixo
-        const API_KEY = "";
 
         // ==========================================
         // LÓGICA DO MICROFONE (DITADO POR VOZ)
@@ -187,70 +180,44 @@
         }
 
         // ==========================================
-// LÓGICA DE CONSULTA À API DO GEMINI (VIA NETLIFY FUNCTION)
-// ==========================================
-async function consultarDireitos() {
-    const tema = document.getElementById('tema').value;
-    const localizacao = document.getElementById('localizacao').value || "Não informada";
-    const problema = document.getElementById('problema').value.trim();
-    const btn = document.getElementById('btnConsultar');
-    const resultadoDiv = document.getElementById('resultado');
+        // LÓGICA DE CONSULTA À API DO GEMINI (VIA NETLIFY FUNCTION)
+        // ==========================================
+        async function consultarDireitos() {
+            const tema = document.getElementById('tema').value;
+            const localizacao = document.getElementById('localizacao').value || "Não informada";
+            const problema = document.getElementById('problema').value.trim();
+            const btn = document.getElementById('btnConsultar');
+            const resultadoDiv = document.getElementById('resultado');
 
-    if (!problema) {
-        alert("Por favor, descreva o seu problema antes de consultar.");
-        return;
-    }
+            if (!problema) {
+                alert("Por favor, descreva o seu problema antes de consultar.");
+                return;
+            }
 
-    btn.disabled = true;
-    btn.innerHTML = `<span class="animate-spin">🌀</span> Consultando Legislação...`;
-    resultadoDiv.classList.add('hidden');
+            btn.disabled = true;
+            btn.innerHTML = `<span class="animate-spin">🌀</span> Consultando Legislação...`;
+            resultadoDiv.classList.add('hidden');
 
-    const promptUsuario = `Tema: ${tema}\nLocalização: ${localizacao}\nProblema: ${problema}`;
+            const promptUsuario = `Tema: ${tema}\nLocalização: ${localizacao}\nProblema: ${problema}`;
 
-    try {
-        // Agora chamamos a função segura da Netlify, em vez da API do Google diretamente
-        const response = await fetch('/.netlify/functions/gemini', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                promptUsuario: promptUsuario,
-                systemInstructions: typeof SYSTEM_INSTRUCTIONS !== 'undefined' ? SYSTEM_INSTRUCTIONS : ""
-            })
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(data.error || "Erro na resposta do servidor");
-        }
-
-        // Pega o texto da resposta vindo da Netlify Function
-        const textoResposta = data.candidates[0].content.parts[0].text;
-
-        resultadoDiv.innerHTML = marked.parse(textoResposta);
-        resultadoDiv.classList.remove('hidden');
-        resultadoDiv.scrollIntoView({
-            behavior: 'smooth'
-        });
-
-    } catch (erro) {
-        alert("Erro ao consultar: " + erro.message);
-        console.error(erro);
-    } finally {
-        btn.disabled = false;
-        btn.innerHTML = `<span>Consultar Meus Direitos</span>`;
-    }
-}
-    
-
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error?.message || "Erro na resposta da API");
-                }
+            try {
+                const response = await fetch('/.netlify/functions/gemini', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        promptUsuario: promptUsuario,
+                        systemInstructions: typeof SYSTEM_INSTRUCTIONS !== 'undefined' ? SYSTEM_INSTRUCTIONS : ""
+                    })
+                });
 
                 const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || "Erro na resposta do servidor");
+                }
+
                 const textoResposta = data.candidates[0].content.parts[0].text;
 
                 resultadoDiv.innerHTML = marked.parse(textoResposta);
