@@ -21,8 +21,8 @@ exports.handler = async function(event, context) {
         }
 
         // Chamada para o modelo gemini-2.0-flash
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`, {
-            method: 'POST',
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`,{
+            method: 'POST'https://constitucao-na-palma-da-mao.netlify.app },
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 system_instruction: { 
