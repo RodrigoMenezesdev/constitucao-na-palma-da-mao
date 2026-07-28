@@ -214,9 +214,19 @@
 
                 const data = await response.json();
 
-                if (!response.ok) {
-                    throw new Error(data.error || "Erro na resposta do servidor");
-                }
+                // ✅ Como deve ficar (extrai a mensagem real do erro):
+if (!response.ok) {
+    let mensagem = "Erro no servidor";
+    if (typeof data.error === 'string') {
+        mensagem = data.error;
+    } else if (data.error && data.error.message) {
+        mensagem = data.error.message;
+    } else if (typeof data === 'object') {
+        mensagem = JSON.stringify(data);
+    }
+    throw new Error(mensagem);
+}
+                
 
                 const textoResposta = data.candidates[0].content.parts[0].text;
 
