@@ -1,6 +1,9 @@
 exports.handler = async function(event, context) {
     if (event.httpMethod !== "POST") {
-        return { statusCode: 405, body: JSON.stringify({ error: "Método não permitido" }) };
+        return { 
+            statusCode: 405, 
+            body: JSON.stringify({ error: "Método não permitido" }) 
+        };
     }
 
     try {
@@ -11,7 +14,7 @@ exports.handler = async function(event, context) {
             return {
                 statusCode: 500,
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ error: "Chave GEMINI_API_KEY não encontrada." })
+                body: JSON.stringify({ error: "Chave GEMINI_API_KEY não encontrada nas variáveis do Netlify." })
             };
         }
 
