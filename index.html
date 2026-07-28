@@ -201,17 +201,23 @@
             const promptUsuario = `Tema: ${tema}\nLocalização: ${localizacao}\nProblema: ${problema}`;
 
             try {
-                const response = await fetch('https://SEU-SITE.netlify.app/.netlify/functions/gemini', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        promptUsuario: promptUsuario,
-                        systemInstructions: typeof SYSTEM_INSTRUCTIONS !== 'undefined' ? SYSTEM_INSTRUCTIONS : ""
-                    })
-                });
+    const response = await fetch('https://constitucao-na-palma-da-mao.netlify.app/.netlify/functions/gemini', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            promptUsuario: promptUsuario,
+            systemInstructions: typeof SYSTEM_INSTRUCTIONS !== 'undefined' ? SYSTEM_INSTRUCTIONS : ""
+        })
+    });
 
+    const data = await response.json();
+    console.log("Resposta recebida:", data);
+} catch (error) {
+    console.error("Erro na requisição:", error);
+            }
+            
                 const data = await response.json();
 
                 // ✅ Como deve ficar (extrai a mensagem real do erro):
