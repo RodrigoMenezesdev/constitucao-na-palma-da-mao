@@ -12,24 +12,24 @@ exports.handler = async function(event, context) {
         if (!API_KEY) {
             return {
                 statusCode: 500,
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ error: "A chave GEMINI_API_KEY não foi encontrada nas variáveis de ambiente do Netlify." })
             };
         }
-     // Chamada à API oficial do Gemini usando o alias gemini-1.5-flash-latest
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${API_KEY}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-        system_instruction: { 
-            parts: [{ text: systemInstructions || "" }] 
-        },
-        contents: [{ 
-            parts: [{ text: promptUsuario }] 
-        }]
-    })
-});
-        
-    
+
+        // Endpoint atualizado para a API do Gemini
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                system_instruction: { 
+                    parts: [{ text: systemInstructions || "" }] 
+                },
+                contents: [{ 
+                    parts: [{ text: promptUsuario }] 
+                }]
+            })
+        });
 
         const data = await response.json();
 
