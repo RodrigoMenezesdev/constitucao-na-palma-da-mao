@@ -201,50 +201,43 @@
             const promptUsuario = `Tema: ${tema}\nLocalização: ${localizacao}\nProblema: ${problema}`;
 
             try {
-    const response = await fetch('https://constitucao-na-palma-da-mao.netlify.app/.netlify/functions/gemini', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            promptUsuario: promptUsuario,
-            systemInstructions: typeof SYSTEM_INSTRUCTIONS !== 'undefined' ? SYSTEM_INSTRUCTIONS : ""
-        })
-    });
+                // 1. Faz a requisição para a função do Netlify
+                const response = await fetch('https://constitucao-na-palma-da-mao.netlify.app/.netlify/functions/gemini', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        promptUsuario: promptUsuario,
+                        systemInstructions: typeof SYSTEM_INSTRUCTIONS !== 'undefined' ? SYSTEM_INSTRUCTIONS : ""
+                    })
+                });
 
-    const data = await response.json();
-    console.log("Resposta recebida:", data);
-} catch (error) {
-    console.error("Erro na requisição:", error);
-            }
-            
+                // 2. Transforma a resposta em JSON
                 const data = await response.json();
 
-                // ✅ Como deve ficar (extrai a mensagem real do erro):
-          if (!response.ok) {
-             let mensagem = "Erro no servidor";
-             if (typeof data.error === 'string') {
-              mensagem = data.error;
-              } else if (data.error && data.error.message) {
-               mensagem = data.error.message;
-               } else if (typeof data === 'object') {
-               mensagem = JSON.stringify(data);
-               }
-               throw new Error(mensagem);
-            }
-                
+                // 3. Trata possíveis erros de resposta da API/Servidor
+                if (!response.ok) {
+                    let mensagem = "Erro no servidor";
+                    if (typeof data.error === 'string') {
+                        mensagem = data.error;
+                    } else if (data.error && data.error.message) {
+                        mensagem = data.error.message;
+                    } else if (typeof data === 'object') {
+                        mensagem = JSON.stringify(data);
+                    }
+                    throw new Error(mensagem);
+                }
 
+                // 4. Exibe o resultado renderizado com o MarkedJS
                 const textoResposta = data.candidates[0].content.parts[0].text;
-
                 resultadoDiv.innerHTML = marked.parse(textoResposta);
                 resultadoDiv.classList.remove('hidden');
-                resultadoDiv.scrollIntoView({
-                    behavior: 'smooth'
-                });
+                resultadoDiv.scrollIntoView({ behavior: 'smooth' });
 
             } catch (erro) {
                 alert("Erro ao consultar: " + erro.message);
-                console.error(erro);
+                console.error("Erro na requisição:", erro);
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = `<span>Consultar Meus Direitos</span>`;
