@@ -1,61 +1,62 @@
-        async function consultarDireitos() {
-            const tema = document.getElementById('tema').value;
-            const localizacao = document.getElementById('localizacao').value || "Não informada";
-            const problema = document.getElementById('problema').value.trim();
-            const btn = document.getElementById('btnConsultar');
-            const resultadoDiv = document.getElementById('resultado');
+exports.handler = async function(event, context) {
+    // 🌐 Cabeçalhos de CORS para liberar o acesso do GitHub Pages
+    const headers = {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "Content-Type",
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
+        "Content-Type": "application/json"
+    };
 
-            if (!problema) {
-                alert("Por favor, descreva o seu problema antes de consultar.");
-                return;
-            }
+    // Trata a pré-requisição do navegador (preflight request)
+    if (event.httpMethod === "OPTIONS") {
+        return { statusCode: 200, headers, body: "" };
+    }
 
-            btn.disabled = true;
-            btn.innerHTML = `<span class="animate-spin">🌀</span> Consultando Legislação...`;
-            resultadoDiv.classList.add('hidden');
+    if (event.httpMethod !== "POST") {
+        return { 
+            statusCode: 405, 
+            headers,
+            body: JSON.stringify({ error: "Método não permitido" }) 
+        };
+    }
 
-            const promptUsuario = `Tema: ${tema}\nLocalização: ${localizacao}\nProblema: ${problema}`;
+    try {
+        const { promptUsuario, systemInstructions } = JSON.parse(event.body || '{}');
+        const API_KEY = process.env.GEMINI_API_KEY;
 
-            try {
-                // 1. Faz a requisição para a função do Netlify
-                const response = await fetch('https://constitucao-na-palma-da-mao.netlify.app/.netlify/functions/gemini', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        promptUsuario: promptUsuario,
-                        systemInstructions: typeof SYSTEM_INSTRUCTIONS !== 'undefined' ? SYSTEM_INSTRUCTIONS : ""
-                    })
-                });
-
-                // 2. Transforma a resposta em JSON
-                const data = await response.json();
-
-                // 3. Trata possíveis erros de resposta da API/Servidor
-                if (!response.ok) {
-                    let mensagem = "Erro no servidor";
-                    if (typeof data.error === 'string') {
-                        mensagem = data.error;
-                    } else if (data.error && data.error.message) {
-                        mensagem = data.error.message;
-                    } else if (typeof data === 'object') {
-                        mensagem = JSON.stringify(data);
-                    }
-                    throw new Error(mensagem);
-                }
-
-                // 4. Exibe o resultado renderizado com o MarkedJS
-                const textoResposta = data.candidates[0].content.parts[0].text;
-                resultadoDiv.innerHTML = marked.parse(textoResposta);
-                resultadoDiv.classList.remove('hidden');
-                resultadoDiv.scrollIntoView({ behavior: 'smooth' });
-
-            } catch (erro) {
-                alert("Erro ao consultar: " + erro.message);
-                console.error("Erro na requisição:", erro);
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = `<span>Consultar Meus Direitos</span>`;
-            }
+        if (!API_KEY) {
+            return {
+                statusCode: 500,
+                headers,
+                body: JSON.stringify({ error: "Chave GEMINI_API_KEY não encontrada nas variáveis do Netlify." })
+            };
         }
+
+        const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + API_KEY;
+        
+        const payload = {
+            system_instruction: { parts: [{ text: systemInstructions || "" }] },
+            contents: [{ parts: [{ text: promptUsuario }] }]
+        };
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+
+        return {
+            statusCode: response.status,
+            headers,
+            body: JSON.stringify(data)
+        };
+    } catch (error) {
+        return {
+            statusCode: 500,
+            headers,
+            body: JSON.stringify({ error: error.message })
+        };
+    }
+};
