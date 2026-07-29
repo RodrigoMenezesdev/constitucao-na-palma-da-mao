@@ -200,9 +200,10 @@
 
             const promptUsuario = `Tema: ${tema}\nLocalização: ${localizacao}\nProblema: ${problema}`;
 
-            try {
+                try {
                 // 1. Faz a requisição para a função do Netlify
-                const response = await fetch('https://constitucao-na-palma-da-mao.netlify.app/.netlify/functions/gemini', {
+                const response = await fetch('https://constituicao-palma-da-mao.netlify.app/.netlify/functions/gemini', {
+                    
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
